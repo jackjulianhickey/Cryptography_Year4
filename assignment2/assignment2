@@ -1,0 +1,93 @@
+import struct
+
+
+def xor_dec(s1, s2):
+    result = []
+
+    if len(s1) < len(s2):
+        s1_len = len(s1)
+        s2_len = len(s2)
+
+        dif = s2_len - s1_len
+
+        s2 = s2[:dif]
+
+    for i in range(len(s2)):
+        result.append(s1[i] ^ s2[i])
+    return result
+
+
+def convert_to_dec(s):
+    s_ord = []
+
+    for i in range(len(s)):
+        s_ord += [ord(s[i])]
+
+    return s_ord
+
+
+def padding(message):
+    message_return = []
+
+    message_split = [message[i:i + 4] for i in range(0, len(message), 4)]
+
+    n_items = len(message_split)
+
+    len_of_last_item = len(message_split[n_items - 1])
+
+    if len_of_last_item == 4:
+        message_split.append('\\x00\\x00\\x00\\x04')
+        return message_split
+    else:
+        padding_nums_to_add = 4 - len_of_last_item
+        last_item = message_split[n_items - 1]
+        last_item += struct.pack(">H", padding_nums_to_add)
+
+        for i in range(len(message_split)):
+            if i == (n_items - 1):
+                message_return.append(last_item)
+            else:
+                message_return.append(message_split[i])
+        return message_return
+
+
+def convert_to_hex(s):
+    list_to_return = []
+
+    for i in range(len(s)):
+        list_to_return.append(hex(s[i]))
+    return list_to_return
+
+
+def shift_nums(input):
+    return input[3:] + input[:3]
+
+
+def block_cipher(input, key):
+    input_dec = convert_to_dec(input)
+    key_dec = convert_to_dec(key)
+
+    result_dec = xor_dec(input_dec, key_dec)
+    result_shift = shift_nums(result_dec)
+    return result_shift
+
+
+def main(key, user_message, IV):
+    result = []
+    message_with_padding = padding(user_message)
+    print message_with_padding
+
+    for i in range(len(message_with_padding)):
+        result.append(block_cipher(message_with_padding[i], key))
+    print result
+
+
+if __name__ == '__main__':
+    key = "0341"
+    print key
+    # user_message = raw_input("Enter your message: ")
+    user_message = 'I love long input!'
+
+    IV = 1
+
+    main(key, user_message, IV)
